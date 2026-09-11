@@ -1,33 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Deriv Trading Site</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deriv R_100 Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-body{background:#0f172a;color:white;font-family:sans-serif;text-align:center;padding:20px}
-#price{font-size:42px;color:#00d082;margin:20px;font-weight:bold}
-button{padding:16px 35px;border-radius:12px;border:none;font-size:18px;margin:8px}
-.buy{background:#00d082} .sell{background:#ff4444;color:white}
-.card{background:#1e293b;padding:20px;border-radius:15px;margin-top:20px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Inter,sans-serif;background:#0b0e14;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px;color:#e9edf5}
+.dashboard{max-width:1380px;width:100%;background:#131823;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:24px}
+.top-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
+.asset-info{display:flex;align-items:center;gap:12px}
+.asset-icon{width:48px;height:48px;background:linear-gradient(145deg,#2a3346,#1a212e);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#ff5e5e;border:1px solid #3a445a}
+.asset-text h1{font-size:24px;font-weight:700;display:flex;align-items:center;gap:8px}
+.asset-text h1 span{font-size:14px;font-weight:500;color:#9aa5b8;background:#1f2735;padding:3px 10px;border-radius:40px}
+.price-large{display:flex;align-items:baseline;gap:12px;margin-top:6px}
+.current-price{font-size:34px;font-weight:700}
+.change-badge{background:#1e3a2f;color:#5fdc8c;padding:4px 12px;border-radius:40px;font-weight:600;font-size:15px}
+.stats-mini{display:flex;gap:28px;background:#0f141d;padding:12px 24px;border-radius:80px;border:1px solid #262e3c;flex-wrap:wrap}
+.stat-label{font-size:12px;color:#8892a8}
+.stat-value{font-weight:600;font-size:16px}
+.main-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:24px}
+.left-col,.right-col{display:flex;flex-direction:column;gap:24px}
+.chart-card,.tick-stream,.trade-panel{background:#0f141d;border-radius:24px;border:1px solid #222b38;padding:20px}
+.canvas-wrapper{width:100%;height:260px}
+canvas{width:100%;height:100%;background:#0f141d;border-radius:8px}
+.tick-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
+.tick-row{display:flex;justify-content:space-between;padding:6px 8px;font-size:14px;border-radius:6px;background:#141b26}
+.btn-buy,.btn-sell{flex:1;border:none;padding:16px 0;border-radius:18px;font-weight:700;font-size:16px;cursor:pointer}
+.btn-buy{background:#1e4d3a;color:#7ef0aa;border:1px solid #2b6e4f}
+.btn-sell{background:#522b34;color:#ff9b9b;border:1px solid #753f4b}
+.input-wrapper{display:flex;align-items:center;background:#161e2b;border-radius:14px;border:1px solid #28303f;padding:0 16px}
+.input-wrapper input{width:100%;background:transparent;border:none;padding:14px 0;color:white;outline:none}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#f0b90b;display:inline-block}
+.status-dot.connected{background:#5fdc8c}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<h2>🚀 Deriv Live Trading</h2>
-<div class="card">
-<div id="price">Connecting to Deriv...</div>
-<div>Volatility 100 Index (R_100)</div>
-<br>
-<button class="buy" onclick="alert('BUY placed! Demo only')">BUY</button>
-<button class="sell" onclick="alert('SELL placed! Demo only')">SELL</button>
+<div class="dashboard">
+<div class="top-bar">
+<div class="asset-info">
+<div class="asset-icon">📊</div>
+<div class="asset-text"><h1>R_100 <span>VOLATILITY 100</span></h1><div class="price-large"><div class="current-price" id="livePrice">—</div><div class="change-badge" id="priceChange">+0.00%</div></div></div>
 </div>
-<p style="margin-top:20px;color:#94a3b8">Your site: kipchumba883.github.io/deriv-trading-site</p>
+<div class="stats-mini">
+<div><span class="stat-label">Last Tick</span><div class="stat-value" id="lastTickTime">—</div></div>
+<div><span class="stat-label">Tick Count</span><div class="stat-value" id="tickCount">0</div></div>
+<div><span class="stat-label">Status</span><div><span class="status-dot" id="statusDot"></span> <span id="statusText">Connecting…</span></div></div>
+</div>
+</div>
+<div class="main-grid">
+<div class="left-col">
+<div class="chart-card"><div style="color:#b0c0d8;margin-bottom:12px">● Live R_100 Price Chart</div><div class="canvas-wrapper"><canvas id="priceChart" width="800" height="260"></canvas></div></div>
+<div class="tick-stream"><h3>Live Tick Stream <span id="streamCount">0 ticks</span></h3><div class="tick-list" id="tickList"><div style="color:#6c7a91;text-align:center;padding:20px">Waiting for live ticks…</div></div></div>
+</div>
+<div class="right-col">
+<div class="trade-panel">
+<div style="display:flex;gap:8px;margin-bottom:18px"><button style="flex:1;padding:10px;border-radius:20px;background:#2a3446;color:white;border:none">Buy</button><button style="flex:1;padding:10px;border-radius:20px;background:transparent;color:#9aa5b8;border:none">Sell</button></div>
+<div><small style="color:#8892a8">Price</small><div class="input-wrapper"><input id="priceInput" readonly placeholder="0.00"><span>USD</span></div></div>
+<div style="margin-top:12px"><small style="color:#8892a8">Amount</small><div class="input-wrapper"><input id="amountInput" value="10"><span>USD</span></div></div>
+<div style="display:flex;gap:8px;margin-top:14px"><button class="btn-buy">▲ Buy</button><button class="btn-sell">▼ Sell</button></div>
+</div>
+</div>
+</div>
+</div>
 <script>
-let ws=new WebSocket('wss://ws.binaryws.com/websockets/v3?app_id=1089');
-ws.onopen=()=>ws.send(JSON.stringify({ticks:'R_100'}));
-ws.onmessage=(e)=>{
- let d=JSON.parse(e.data);
- if(d.tick) document.getElementById('price').innerText='V100: $ '+d.tick.quote;
+const WS_URL='wss://ws.derivws.com/websockets/v3?app_id=1089';
+let tickCount=0,firstPrice=null,chartPoints=[];
+const livePriceEl=document.getElementById('livePrice'),priceChangeEl=document.getElementById('priceChange'),lastTickTimeEl=document.getElementById('lastTickTime'),tickCountEl=document.getElementById('tickCount'),statusDot=document.getElementById('statusDot'),statusText=document.getElementById('statusText'),tickListEl=document.getElementById('tickList'),streamCountEl=document.getElementById('streamCount'),priceInput=document.getElementById('priceInput');
+const canvas=document.getElementById('priceChart'),ctx=canvas.getContext('2d');
+function drawChart(){
+ctx.clearRect(0,0,800,260);
+if(chartPoints.length<2){ctx.fillStyle='#4d5c74';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Waiting for tick data...',400,130);return;}
+const min=Math.min(...chartPoints),max=Math.max(...chartPoints),range=max-min||1;
+const yScale=p=>260-((p-min)/range)*260;
+ctx.beginPath();chartPoints.forEach((p,i)=>{const x=(i/(chartPoints.length-1))*800,y=yScale(p);i==0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.strokeStyle='#3b82f6';ctx.lineWidth=2.5;ctx.stroke();
+const last=chartPoints[chartPoints.length-1];ctx.beginPath();ctx.arc(800,yScale(last),5,0,6.28);ctx.fillStyle='#fff';ctx.fill();
 }
+function connect(){
+const ws=new WebSocket(WS_URL);
+ws.onopen=()=>{statusDot.classList.add('connected');statusText.innerText='Connected';ws.send(JSON.stringify({ticks:'R_100'}))};
+ws.onmessage=(e)=>{const d=JSON.parse(e.data);if(d.tick){const price=d.tick.quote;if(firstPrice===null)firstPrice=price;livePriceEl.innerText=price.toFixed(2);priceInput.value=price.toFixed(2);
+const change=((price-firstPrice)/firstPrice*100);priceChangeEl.innerText=(change>=0?'+':'')+change.toFixed(2)+'%';
+tickCount++;tickCountEl.innerText=tickCount;streamCountEl.innerText=tickCount+' ticks';lastTickTimeEl.innerText=new Date().toLocaleTimeString();
+chartPoints.push(price);if(chartPoints.length>60)chartPoints.shift();drawChart();
+const row=document.createElement('div');row.className='tick-row';row.innerHTML=`<span style="color:#5fdc8c">${price.toFixed(2)}</span><span style="color:#6c7a91;font-size:12px">${new Date().toLocaleTimeString()}</span>`;tickListEl.prepend(row);if(tickListEl.children.length>30)tickListEl.lastChild.remove();
+}};
+ws.onclose=()=>{statusDot.classList.remove('connected');statusText.innerText='Reconnecting...';setTimeout(connect,2000)};
+}
+connect();drawChart();
 </script>
 </body>
-</html>
+ </html>
