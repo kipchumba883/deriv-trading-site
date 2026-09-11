@@ -80,7 +80,7 @@ const last=chartPoints[chartPoints.length-1];ctx.beginPath();ctx.arc(800,yScale(
 }
 function connect(){
 const ws=new WebSocket(WS_URL);
-ws.onopen=()=>{statusDot.classList.add('connected');statusText.innerText='Connected';ws.send(JSON.stringify({ticks:'R_100'}))};
+ws.onopen=()=>{statusDot.classList.add('connected');statusText.innerText='Connected';ws.send(JSON.stringify({ticks:'R_100', subscribe:1}))};
 ws.onmessage=(e)=>{const d=JSON.parse(e.data);if(d.tick){const price=d.tick.quote;if(firstPrice===null)firstPrice=price;livePriceEl.innerText=price.toFixed(2);priceInput.value=price.toFixed(2);
 const change=((price-firstPrice)/firstPrice*100);priceChangeEl.innerText=(change>=0?'+':'')+change.toFixed(2)+'%';
 tickCount++;tickCountEl.innerText=tickCount;streamCountEl.innerText=tickCount+' ticks';lastTickTimeEl.innerText=new Date().toLocaleTimeString();
