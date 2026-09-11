@@ -1,95 +1,848 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deriv R_100 Live</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Inter,sans-serif;background:#0b0e14;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:16px;color:#e9edf5}
-.dashboard{max-width:1380px;width:100%;background:#131823;border-radius:28px;padding:24px;display:flex;flex-direction:column;gap:24px}
-.top-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px}
-.asset-info{display:flex;align-items:center;gap:12px}
-.asset-icon{width:48px;height:48px;background:linear-gradient(145deg,#2a3346,#1a212e);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#ff5e5e;border:1px solid #3a445a}
-.asset-text h1{font-size:24px;font-weight:700;display:flex;align-items:center;gap:8px}
-.asset-text h1 span{font-size:14px;font-weight:500;color:#9aa5b8;background:#1f2735;padding:3px 10px;border-radius:40px}
-.price-large{display:flex;align-items:baseline;gap:12px;margin-top:6px}
-.current-price{font-size:34px;font-weight:700}
-.change-badge{background:#1e3a2f;color:#5fdc8c;padding:4px 12px;border-radius:40px;font-weight:600;font-size:15px}
-.stats-mini{display:flex;gap:28px;background:#0f141d;padding:12px 24px;border-radius:80px;border:1px solid #262e3c;flex-wrap:wrap}
-.stat-label{font-size:12px;color:#8892a8}
-.stat-value{font-weight:600;font-size:16px}
-.main-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:24px}
-.left-col,.right-col{display:flex;flex-direction:column;gap:24px}
-.chart-card,.tick-stream,.trade-panel{background:#0f141d;border-radius:24px;border:1px solid #222b38;padding:20px}
-.canvas-wrapper{width:100%;height:260px}
-canvas{width:100%;height:100%;background:#0f141d;border-radius:8px}
-.tick-list{max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px}
-.tick-row{display:flex;justify-content:space-between;padding:6px 8px;font-size:14px;border-radius:6px;background:#141b26}
-.btn-buy,.btn-sell{flex:1;border:none;padding:16px 0;border-radius:18px;font-weight:700;font-size:16px;cursor:pointer}
-.btn-buy{background:#1e4d3a;color:#7ef0aa;border:1px solid #2b6e4f}
-.btn-sell{background:#522b34;color:#ff9b9b;border:1px solid #753f4b}
-.input-wrapper{display:flex;align-items:center;background:#161e2b;border-radius:14px;border:1px solid #28303f;padding:0 16px}
-.input-wrapper input{width:100%;background:transparent;border:none;padding:14px 0;color:white;outline:none}
-.status-dot{width:8px;height:8px;border-radius:50%;background:#f0b90b;display:inline-block}
-.status-dot.connected{background:#5fdc8c}
-@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deriv • R_100 Live Trading</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Google Fonts Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0b0e14;
+      color: #e9edf5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .trading-card {
+      max-width: 1200px;
+      width: 100%;
+      background: #131a24;
+      border-radius: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      padding: 2rem 2rem 2rem 2rem;
+      transition: all 0.2s ease;
+    }
+
+    /* header section */
+    .header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(145deg, #ff7b3e, #e54b1e);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #0b0e14;
+      box-shadow: 0 8px 18px -4px rgba(255, 100, 30, 0.3);
+    }
+
+    .logo-text {
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: white;
+    }
+
+    .logo-text span {
+      color: #ff7b3e;
+    }
+
+    .market-badge {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #1e2732;
+      padding: 0.6rem 1.4rem;
+      border-radius: 50px;
+      border: 1px solid #2c3848;
+    }
+
+    .market-badge i {
+      color: #ff7b3e;
+      font-size: 1.2rem;
+    }
+
+    .market-badge .pair {
+      font-weight: 600;
+      font-size: 1.2rem;
+      letter-spacing: -0.3px;
+    }
+
+    .market-badge .status {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #1ed67c;
+      background: rgba(30, 214, 124, 0.1);
+      padding: 0.25rem 0.75rem;
+      border-radius: 30px;
+      border: 1px solid rgba(30, 214, 124, 0.3);
+    }
+
+    .status .dot {
+      width: 7px;
+      height: 7px;
+      background: #1ed67c;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* price panel */
+    .price-panel {
+      background: #0b1017;
+      border-radius: 2rem;
+      padding: 1.8rem 2rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid #262f3c;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    }
+
+    .price-main {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .price-label {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #8b9bb5;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+
+    .price-value {
+      font-size: 3.5rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      color: white;
+      transition: color 0.15s;
+    }
+
+    .price-change {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: rgba(30, 214, 124, 0.12);
+      color: #1ed67c;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+    }
+
+    .price-change.negative {
+      background: rgba(255, 70, 70, 0.12);
+      color: #ff5e5e;
+    }
+
+    .price-change i {
+      font-size: 1rem;
+    }
+
+    .timestamp {
+      font-size: 0.85rem;
+      color: #7a8a9e;
+      background: #1a212c;
+      padding: 0.5rem 1.2rem;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border: 1px solid #2b3543;
+    }
+
+    /* chart wrapper */
+    .chart-wrapper {
+      background: #0b1017;
+      border-radius: 2rem;
+      padding: 1.5rem 1.5rem 0.8rem 1.5rem;
+      border: 1px solid #262f3c;
+      margin-bottom: 1.8rem;
+      position: relative;
+    }
+
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+      padding: 0 0.5rem;
+    }
+
+    .chart-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #9aaec9;
+      letter-spacing: 0.3px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .chart-header h3 i {
+      color: #ff7b3e;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1.2rem;
+      font-size: 0.8rem;
+      color: #8b9bb5;
+    }
+
+    .legend span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .legend .line-sample {
+      width: 18px;
+      height: 2px;
+      background: #ff7b3e;
+      border-radius: 2px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 220px;
+      border-radius: 1rem;
+      background: #0b1017;
+    }
+
+    /* stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-item {
+      background: #0f1620;
+      padding: 1rem 1.4rem;
+      border-radius: 1.5rem;
+      border: 1px solid #242e3b;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: background 0.2s;
+    }
+
+    .stat-item .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font-weight: 600;
+      color: #7387a3;
+    }
+
+    .stat-item .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #eef3fc;
+    }
+
+    .stat-item .value small {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #8b9bb5;
+      margin-left: 0.25rem;
+    }
+
+    /* trade panel */
+    .trade-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      background: #0f1620;
+      border-radius: 2rem;
+      padding: 1.2rem 1.8rem;
+      border: 1px solid #242e3b;
+    }
+
+    .trade-actions {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.9rem 2.4rem;
+      border-radius: 60px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      letter-spacing: -0.2px;
+      background: transparent;
+      color: white;
+    }
+
+    .btn-buy {
+      background: #1ed67c;
+      color: #0b0e14;
+      box-shadow: 0 8px 20px -6px rgba(30, 214, 124, 0.4);
+    }
+
+    .btn-buy:hover {
+      background: #2ae68a;
+      transform: scale(1.02);
+    }
+
+    .btn-sell {
+      background: #ff4646;
+      color: white;
+      box-shadow: 0 8px 20px -6px rgba(255, 70, 70, 0.4);
+    }
+
+    .btn-sell:hover {
+      background: #ff5e5e;
+      transform: scale(1.02);
+    }
+
+    .stake-box {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #1a212c;
+      padding: 0.4rem 0.4rem 0.4rem 1.4rem;
+      border-radius: 50px;
+      border: 1px solid #2c3848;
+    }
+
+    .stake-box span {
+      color: #8b9bb5;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .stake-box input {
+      background: #0f1620;
+      border: 1px solid #2c3848;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 0.7rem 1rem;
+      border-radius: 40px;
+      width: 110px;
+      outline: none;
+      text-align: right;
+    }
+
+    .stake-box input:focus {
+      border-color: #ff7b3e;
+    }
+
+    .balance {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      color: #8b9bb5;
+      font-weight: 500;
+    }
+
+    .balance .amount {
+      color: white;
+      font-weight: 700;
+      font-size: 1.2rem;
+      margin-left: 0.2rem;
+    }
+
+    /* footer note */
+    .footer-note {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #5f7189;
+      letter-spacing: 0.2px;
+    }
+
+    .footer-note i {
+      color: #ff7b3e;
+      margin-right: 0.25rem;
+    }
+
+    @media (max-width: 650px) {
+      .trading-card { padding: 1.5rem; }
+      .price-value { font-size: 2.4rem; }
+      .trade-panel { flex-direction: column; align-items: stretch; }
+      .trade-actions { justify-content: center; }
+      .balance { justify-content: center; }
+      .price-panel { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
 </head>
 <body>
-<div class="dashboard">
-<div class="top-bar">
-<div class="asset-info">
-<div class="asset-icon">📊</div>
-<div class="asset-text"><h1>R_100 <span>VOLATILITY 100</span></h1><div class="price-large"><div class="current-price" id="livePrice">—</div><div class="change-badge" id="priceChange">+0.00%</div></div></div>
-</div>
-<div class="stats-mini">
-<div><span class="stat-label">Last Tick</span><div class="stat-value" id="lastTickTime">—</div></div>
-<div><span class="stat-label">Tick Count</span><div class="stat-value" id="tickCount">0</div></div>
-<div><span class="stat-label">Status</span><div><span class="status-dot" id="statusDot"></span> <span id="statusText">Connecting…</span></div></div>
-</div>
-</div>
-<div class="main-grid">
-<div class="left-col">
-<div class="chart-card"><div style="color:#b0c0d8;margin-bottom:12px">● Live R_100 Price Chart</div><div class="canvas-wrapper"><canvas id="priceChart" width="800" height="260"></canvas></div></div>
-<div class="tick-stream"><h3>Live Tick Stream <span id="streamCount">0 ticks</span></h3><div class="tick-list" id="tickList"><div style="color:#6c7a91;text-align:center;padding:20px">Waiting for live ticks…</div></div></div>
-</div>
-<div class="right-col">
-<div class="trade-panel">
-<div style="display:flex;gap:8px;margin-bottom:18px"><button style="flex:1;padding:10px;border-radius:20px;background:#2a3446;color:white;border:none">Buy</button><button style="flex:1;padding:10px;border-radius:20px;background:transparent;color:#9aa5b8;border:none">Sell</button></div>
-<div><small style="color:#8892a8">Price</small><div class="input-wrapper"><input id="priceInput" readonly placeholder="0.00"><span>USD</span></div></div>
-<div style="margin-top:12px"><small style="color:#8892a8">Amount</small><div class="input-wrapper"><input id="amountInput" value="10"><span>USD</span></div></div>
-<div style="display:flex;gap:8px;margin-top:14px"><button class="btn-buy">▲ Buy</button><button class="btn-sell">▼ Sell</button></div>
-</div>
-</div>
-</div>
-</div>
-<script>
-const WS_URL='wss://ws.derivws.com/websockets/v3?app_id=1089';
-let tickCount=0,firstPrice=null,chartPoints=[];
-const livePriceEl=document.getElementById('livePrice'),priceChangeEl=document.getElementById('priceChange'),lastTickTimeEl=document.getElementById('lastTickTime'),tickCountEl=document.getElementById('tickCount'),statusDot=document.getElementById('statusDot'),statusText=document.getElementById('statusText'),tickListEl=document.getElementById('tickList'),streamCountEl=document.getElementById('streamCount'),priceInput=document.getElementById('priceInput');
-const canvas=document.getElementById('priceChart'),ctx=canvas.getContext('2d');
-function drawChart(){
-ctx.clearRect(0,0,800,260);
-if(chartPoints.length<2){ctx.fillStyle='#4d5c74';ctx.font='14px Inter';ctx.textAlign='center';ctx.fillText('Waiting for tick data...',400,130);return;}
-const min=Math.min(...chartPoints),max=Math.max(...chartPoints),range=max-min||1;
-const yScale=p=>260-((p-min)/range)*260;
-ctx.beginPath();chartPoints.forEach((p,i)=>{const x=(i/(chartPoints.length-1))*800,y=yScale(p);i==0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.strokeStyle='#3b82f6';ctx.lineWidth=2.5;ctx.stroke();
-const last=chartPoints[chartPoints.length-1];ctx.beginPath();ctx.arc(800,yScale(last),5,0,6.28);ctx.fillStyle='#fff';ctx.fill();
-}
-function connect(){
-const ws=new WebSocket(WS_URL);
-ws.onopen=()=>{statusDot.classList.add('connected');statusText.innerText='Connected';ws.send(JSON.stringify({ticks:'R_100', subscribe:1}))};
-ws.onmessage=(e)=>{const d=JSON.parse(e.data);if(d.tick){const price=d.tick.quote;if(firstPrice===null)firstPrice=price;livePriceEl.innerText=price.toFixed(2);priceInput.value=price.toFixed(2);
-const change=((price-firstPrice)/firstPrice*100);priceChangeEl.innerText=(change>=0?'+':'')+change.toFixed(2)+'%';
-tickCount++;tickCountEl.innerText=tickCount;streamCountEl.innerText=tickCount+' ticks';lastTickTimeEl.innerText=new Date().toLocaleTimeString();
-chartPoints.push(price);if(chartPoints.length>60)chartPoints.shift();drawChart();
-const row=document.createElement('div');row.className='tick-row';row.innerHTML=`<span style="color:#5fdc8c">${price.toFixed(2)}</span><span style="color:#6c7a91;font-size:12px">${new Date().toLocaleTimeString()}</span>`;tickListEl.prepend(row);if(tickListEl.children.length>30)tickListEl.lastChild.remove();
-}};
-ws.onclose=()=>{statusDot.classList.remove('connected');statusText.innerText='Reconnecting...';setTimeout(connect,2000)};
-}
-connect();drawChart();
-</script>
+  <div class="trading-card">
+    <!-- header -->
+    <div class="header">
+      <div class="logo-area">
+        <div class="logo-icon">D</div>
+        <div class="logo-text">Deriv<span>.</span></div>
+      </div>
+      <div class="market-badge">
+        <i class="fas fa-chart-line"></i>
+        <span class="pair">R_100</span>
+        <span class="status"><span class="dot"></span> LIVE</span>
+      </div>
+    </div>
+
+    <!-- live price panel -->
+    <div class="price-panel">
+      <div class="price-main">
+        <span class="price-label">R_100 Index</span>
+        <span class="price-value" id="livePrice">1,234.56</span>
+        <span class="price-change" id="priceChange"><i class="fas fa-arrow-up"></i> +0.00%</span>
+      </div>
+      <div class="timestamp">
+        <i class="far fa-clock"></i>
+        <span id="lastUpdate">--:--:--</span>
+      </div>
+    </div>
+
+    <!-- real-time chart -->
+    <div class="chart-wrapper">
+      <div class="chart-header">
+        <h3><i class="fas fa-wave-square"></i> R_100 • 1s ticks</h3>
+        <div class="legend">
+          <span><span class="line-sample"></span> Price</span>
+          <span><i class="fas fa-circle" style="color: #ff7b3e; font-size: 0.6rem;"></i> Live</span>
+        </div>
+      </div>
+      <canvas id="priceChart" width="1000" height="220"></canvas>
+    </div>
+
+    <!-- quick stats -->
+    <div class="stats-row">
+      <div class="stat-item">
+        <span class="label">24h High</span>
+        <span class="value" id="high24">--</span>
+      </div>
+      <div class="stat-item">
+        <span class="label">24h Low</span>
+        <span class="value" id="low24">--</span>
+      </div>
+      <div class="stat-item">
+        <span class="label">Volatility</span>
+        <span class="value" id="volatility">0.85<small>%</small></span>
+      </div>
+      <div class="stat-item">
+        <span class="label">Ticks</span>
+        <span class="value" id="tickCount">0</span>
+      </div>
+    </div>
+
+    <!-- trade execution panel -->
+    <div class="trade-panel">
+      <div class="trade-actions">
+        <button class="btn btn-buy" id="buyBtn"><i class="fas fa-arrow-up"></i> Buy / Rise</button>
+        <button class="btn btn-sell" id="sellBtn"><i class="fas fa-arrow-down"></i> Sell / Fall</button>
+      </div>
+      <div class="stake-box">
+        <span>Stake</span>
+        <input type="number" id="stakeInput" value="10.00" min="0.50" step="0.50">
+        <span style="color:#e9edf5; font-weight:600;">USD</span>
+      </div>
+      <div class="balance">
+        <i class="fas fa-wallet"></i> Balance: <span class="amount" id="balanceAmount">$10,000.00</span>
+      </div>
+    </div>
+    <div class="footer-note">
+      <i class="fas fa-bolt"></i> Simulated live R_100 data • Deriv style interface
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      // --- Simulated R_100 live feed ---
+      // Start price around 1234, with realistic volatility
+      let currentPrice = 1234.56;
+      const priceHistory = [];        // store last N prices for chart
+      const maxHistory = 100;         // number of points to display
+      const tickInterval = 800;       // ms per tick (simulate 1s-ish)
+      
+      // high/low tracking
+      let high24 = currentPrice;
+      let low24 = currentPrice;
+      let tickCounter = 0;
+      
+      // DOM elements
+      const livePriceEl = document.getElementById('livePrice');
+      const priceChangeEl = document.getElementById('priceChange');
+      const lastUpdateEl = document.getElementById('lastUpdate');
+      const high24El = document.getElementById('high24');
+      const low24El = document.getElementById('low24');
+      const tickCountEl = document.getElementById('tickCount');
+      const volatilityEl = document.getElementById('volatility');
+      
+      // canvas setup
+      const canvas = document.getElementById('priceChart');
+      const ctx = canvas.getContext('2d');
+      
+      // resize canvas for high DPI
+      function resizeCanvas() {
+        const container = canvas.parentElement;
+        const rect = container.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+        const width = rect.width - 30; // padding compensation
+        const height = 220; // fixed height
+        
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = width + 'px';
+        canvas.style.height = height + 'px';
+        ctx.scale(dpr, dpr);
+        
+        // redraw if we have data
+        if (priceHistory.length > 1) drawChart();
+      }
+      
+      // draw line chart
+      function drawChart() {
+        const dpr = window.devicePixelRatio || 1;
+        const width = canvas.width / dpr;
+        const height = canvas.height / dpr;
+        
+        // clear
+        ctx.clearRect(0, 0, width, height);
+        
+        if (priceHistory.length < 2) return;
+        
+        // find min/max for scaling
+        const minPrice = Math.min(...priceHistory);
+        const maxPrice = Math.max(...priceHistory);
+        const range = maxPrice - minPrice || 1; // avoid divide by zero
+        
+        // padding inside chart
+        const padX = 10;
+        const padY = 15;
+        const chartW = width - padX * 2;
+        const chartH = height - padY * 2;
+        
+        // map index -> x, price -> y
+        const points = priceHistory.map((price, i) => {
+          const x = padX + (i / (priceHistory.length - 1)) * chartW;
+          const y = padY + chartH - ((price - minPrice) / range) * chartH;
+          return { x, y };
+        });
+        
+        // draw gradient under line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.lineTo(points[points.length - 1].x, height - padY);
+        ctx.lineTo(points[0].x, height - padY);
+        ctx.closePath();
+        
+        const gradient = ctx.createLinearGradient(0, 0, 0, height);
+        gradient.addColorStop(0, 'rgba(255, 123, 62, 0.25)');
+        gradient.addColorStop(0.7, 'rgba(255, 123, 62, 0.02)');
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // draw line
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          ctx.lineTo(points[i].x, points[i].y);
+        }
+        ctx.strokeStyle = '#ff7b3e';
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = 'rgba(255, 123, 62, 0.5)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0; // reset
+        
+        // draw glowing dot at last point
+        const last = points[points.length - 1];
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ff7b3e';
+        ctx.shadowColor = '#ff7b3e';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // white outline on dot
+        ctx.beginPath();
+        ctx.arc(last.x, last.y, 4, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        
+        // draw horizontal grid lines (cosmetic)
+        ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= 4; i++) {
+          const y = padY + (i / 4) * chartH;
+          ctx.beginPath();
+          ctx.moveTo(padX, y);
+          ctx.lineTo(width - padX, y);
+          ctx.stroke();
+        }
+      }
+      
+      // update price and all UI elements
+      function updatePrice(newPrice) {
+        // calculate change percentage from previous close (first in history? use last two)
+        let changePercent = 0;
+        if (priceHistory.length > 1) {
+          const prevPrice = priceHistory[priceHistory.length - 1];
+          changePercent = ((newPrice - prevPrice) / prevPrice) * 100;
+        } else {
+          // first tick, use synthetic open
+          changePercent = ((newPrice - 1234.56) / 1234.56) * 100;
+        }
+        
+        // update current price
+        currentPrice = newPrice;
+        
+        // add to history
+        priceHistory.push(newPrice);
+        if (priceHistory.length > maxHistory) {
+          priceHistory.shift();
+        }
+        
+        // update high/low
+        if (newPrice > high24) high24 = newPrice;
+        if (newPrice < low24) low24 = newPrice;
+        
+        // increment tick counter
+        tickCounter++;
+        
+        // ---- update UI ----
+        // Price with 2 decimals (R_100 typically 2 decimals)
+        livePriceEl.textContent = newPrice.toFixed(2);
+        
+        // Change indicator
+        const isPositive = changePercent >= 0;
+        const sign = isPositive ? '+' : '';
+        const arrowIcon = isPositive ? '<i class="fas fa-arrow-up"></i>' : '<i class="fas fa-arrow-down"></i>';
+        priceChangeEl.innerHTML = `${arrowIcon} ${sign}${changePercent.toFixed(2)}%`;
+        priceChangeEl.classList.toggle('negative', !isPositive);
+        
+        // Timestamp
+        const now = new Date();
+        lastUpdateEl.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        // Stats
+        high24El.textContent = high24.toFixed(2);
+        low24El.textContent = low24.toFixed(2);
+        tickCountEl.textContent = tickCounter;
+        
+        // Simulated volatility (based on recent std dev)
+        if (priceHistory.length > 5) {
+          const recent = priceHistory.slice(-10);
+          const mean = recent.reduce((a,b) => a + b, 0) / recent.length;
+          const variance = recent.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / recent.length;
+          const stdDev = Math.sqrt(variance);
+          const volPercent = (stdDev / mean) * 100;
+          volatilityEl.innerHTML = `${volPercent.toFixed(2)}<small>%</small>`;
+        }
+        
+        // Redraw chart
+        drawChart();
+      }
+      
+      // generate next tick price using random walk with slight upward bias for realism
+      function generateNextPrice() {
+        // Random walk with small volatility
+        const volatilityFactor = 0.45; // controls price movement size
+        const change = (Math.random() - 0.48) * volatilityFactor; // slight upward bias
+        let next = currentPrice + change;
+        // Ensure price stays within reasonable bounds (avoid negative)
+        if (next < 100) next = 100 + Math.random() * 10;
+        // Round to 2 decimals
+        return Math.round(next * 100) / 100;
+      }
+      
+      // simulate a tick
+      function tick() {
+        const nextPrice = generateNextPrice();
+        updatePrice(nextPrice);
+      }
+      
+      // initialize price history with a few points so chart isn't empty
+      function initializeHistory() {
+        priceHistory.length = 0; // clear
+        let seedPrice = 1234.56;
+        // generate 40 points of history
+        for (let i = 0; i < 40; i++) {
+          const change = (Math.random() - 0.48) * 0.6;
+          seedPrice = Math.round((seedPrice + change) * 100) / 100;
+          if (seedPrice < 100) seedPrice = 100 + Math.random() * 20;
+          priceHistory.push(seedPrice);
+        }
+        // set current and high/low from history
+        currentPrice = priceHistory[priceHistory.length - 1];
+        high24 = Math.max(...priceHistory);
+        low24 = Math.min(...priceHistory);
+        tickCounter = priceHistory.length;
+        
+        // update UI
+        livePriceEl.textContent = currentPrice.toFixed(2);
+        high24El.textContent = high24.toFixed(2);
+        low24El.textContent = low24.toFixed(2);
+        tickCountEl.textContent = tickCounter;
+        
+        // set a change from last to previous
+        if (priceHistory.length > 1) {
+          const prev = priceHistory[priceHistory.length - 2];
+          const changePercent = ((currentPrice - prev) / prev) * 100;
+          const isPositive = changePercent >= 0;
+          const sign = isPositive ? '+' : '';
+          const arrowIcon = isPositive ? '<i class="fas fa-arrow-up"></i>' : '<i class="fas fa-arrow-down"></i>';
+          priceChangeEl.innerHTML = `${arrowIcon} ${sign}${changePercent.toFixed(2)}%`;
+          priceChangeEl.classList.toggle('negative', !isPositive);
+        }
+        
+        const now = new Date();
+        lastUpdateEl.textContent = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        // set volatility estimate
+        if (priceHistory.length > 5) {
+          const recent = priceHistory.slice(-10);
+          const mean = recent.reduce((a,b) => a + b, 0) / recent.length;
+          const variance = recent.reduce((a,b) => a + Math.pow(b - mean, 2), 0) / recent.length;
+          const stdDev = Math.sqrt(variance);
+          const volPercent = (stdDev / mean) * 100;
+          volatilityEl.innerHTML = `${volPercent.toFixed(2)}<small>%</small>`;
+        }
+      }
+      
+      // --- Trade simulation (buy/sell) ---
+      let balance = 10000.00;
+      const balanceEl = document.getElementById('balanceAmount');
+      
+      function updateBalanceDisplay() {
+        balanceEl.textContent = `$${balance.toFixed(2)}`;
+      }
+      
+      function executeTrade(type) {
+        const stakeInput = document.getElementById('stakeInput');
+        let stake = parseFloat(stakeInput.value);
+        if (isNaN(stake) || stake < 0.5) {
+          alert('Minimum stake is 0.50 USD');
+          stakeInput.value = '10.00';
+          return;
+        }
+        if (stake > balance) {
+          alert('Insufficient balance!');
+          return;
+        }
+        
+        // simulate win/loss (50% chance) — for demo it's a random trade outcome
+        const isWin = Math.random() > 0.5;
+        const payout = isWin ? stake * 0.95 : -stake; // 95% payout on win, lose stake on loss
+        
+        // adjust balance
+        balance += payout;
+        updateBalanceDisplay();
+        
+        // show feedback
+        const direction = type === 'buy' ? 'Rise' : 'Fall';
+        const resultMsg = isWin 
+          ? `✅ Trade won! +$${(stake * 0.95).toFixed(2)}` 
+          : `❌ Trade lost. -$${stake.toFixed(2)}`;
+        
+        // Use a toast-like alert (simple)
+        setTimeout(() => {
+          alert(`[SIMULATED] ${direction} trade\nStake: $${stake.toFixed(2)}\n${resultMsg}\nNew balance: $${balance.toFixed(2)}`);
+        }, 50);
+        
+        // small effect: reset stake to 10
+        stakeInput.value = '10.00';
+      }
+      
+      // --- setup ---
+      window.addEventListener('resize', () => {
+        resizeCanvas();
+      });
+      
+      // Initialize
+      resizeCanvas();
+      initializeHistory();
+      
+      // Start live simulation
+      setInterval(tick, tickInterval);
+      
+      // Event listeners for buttons
+      document.getElementById('buyBtn').addEventListener('click', () => executeTrade('buy'));
+      document.getElementById('sellBtn').addEventListener('click', () => executeTrade('sell'));
+      
+      // make sure canvas redraw on resize
+      window.addEventListener('load', () => {
+        resizeCanvas();
+        drawChart();
+        updateBalanceDisplay();
+      });
+      
+      // also redraw periodically just in case
+      setInterval(() => {
+        // noop to keep chart fresh, but we already draw on tick
+      }, 1000);
+      
+      // initial balance display
+      updateBalanceDisplay();
+      
+      // ensure canvas is resized after any potential layout shift
+      setTimeout(() => resizeCanvas(), 100);
+      
+    })();
+  </script>
 </body>
- </html>
+</html>
