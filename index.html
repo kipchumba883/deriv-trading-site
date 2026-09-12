@@ -1,21 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>Deriv Live Terminal</title>
 <style>
-body{background:#0f172a;color:#fff;font-family:sans-serif;margin:0;padding:12px}
-.card{background:#1e293b;border:1px solid #334155;border-radius:16px;padding:16px;margin-bottom:12px}
-select,input,button{padding:10px;border-radius:10px;border:1px solid #334155}
-button{font-weight:bold;cursor:pointer}
-#price{font-size:2.5rem;font-weight:800}
-canvas{width:100%;height:260px;background:#0b1220;border-radius:12px}
-.buy{background:#22c55e;color:#000;width:49%}.sell{background:#ef4444;color:#fff;width:49%}
+*{box-sizing:border-box}
+body{margin:0;background:#0f172a;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;padding:12px}
+.header,.card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:14px 16px;margin-bottom:12px}
+.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.logo{font-weight:900;letter-spacing:.5px} .logo span{color:#ff6a00}
+select{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:12px;padding:8px 12px;font-weight:600}
+#status{font-size:13px;font-weight:700}
+#marketName{color:#94a3b8;font-size:13px;font-weight:700;letter-spacing:.6px}
+#priceRow{display:flex;align-items:baseline;gap:10px;margin:6px 0}
+#price{font-size:42px;font-weight:900;letter-spacing:-1px}
+#changeBadge{background:#22c55e1a;color:#22c55e;border:1px solid #22c55e33;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:12px 0}
+.stat{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:10px}
+.stat label{display:block;color:#64748b;font-size:10px;font-weight:800;margin-bottom:4px}
+.stat b{font-size:13px}
+canvas{width:100%;height:280px;background:#0b1220;border:1px solid #1e293b;border-radius:14px;display:block}
+.controls{display:flex;gap:10px;margin-top:14px}
+.controls button{flex:1;padding:14px;border-radius:14px;border:0;font-weight:900;font-size:15px;cursor:pointer}
+.buy{background:#22c55e;color:#052e16} .sell{background:#ef4444;color:#fff}
+.balanceRow{display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:8px}
+.balanceRow input{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:10px;padding:6px 10px;width:90px;font-weight:700}
 </style>
 </head>
 <body>
-<div class="card" style="display:flex;justify-content:space-between;align-items:center">
-<div style="font-weight:800">DERIV <span style="color:#ff6a00">LIVE</span></div>
+
+<div class="header">
+<div class="logo">DERIV <span>LIVE</span></div>
 <select id="marketSelect">
 <option value="R_100">R_100</option>
 <option value="R_75">R_75</option>
@@ -27,75 +43,108 @@ canvas{width:100%;height:260px;background:#0b1220;border-radius:12px}
 <option value="1HZ50V">Volatility 50</option>
 <option value="1HZ25V">Volatility 25</option>
 <option value="1HZ10V">Volatility 10</option>
-<option value="BOOM1000">BOOM 1000</option>
-<option value="CRASH1000">CRASH 1000</option>
-<option value="BOOM500">BOOM 500</option>
-<option value="CRASH500">CRASH 500</option>
+<option value="BOOM1000">Boom 1000</option>
+<option value="CRASH1000">Crash 1000</option>
+<option value="BOOM500">Boom 500</option>
+<option value="CRASH500">Crash 500</option>
 </select>
-<span id="status" style="color:#fbbf24">● Connecting...</span>
+<div id="status" style="color:#fbbf24">● Connecting...</div>
 </div>
 
 <div class="card">
 <div id="marketName">R_100 INDEX</div>
+<div id="priceRow">
 <div id="price">—</div>
-<div>Balance: $<span id="bal">10000.00</span> | Stake: <input id="stakeInput" value="10.00" style="width:70px"></div>
+<div id="changeBadge">+0.00%</div>
+</div>
+<div class="balanceRow">
+<span>Balance: $<b id="bal" style="color:#fff">10000.00</b></span>
+<span>Stake: <input id="stakeInput" type="number" value="10.00" step="0.5"></span>
+</div>
+<div class="stats">
+<div class="stat"><label>24H HIGH</label><b id="high">—</b></div>
+<div class="stat"><label>24H LOW</label><b id="low">—</b></div>
+<div class="stat"><label>VOLATILITY</label><b id="vol">—</b></div>
+<div class="stat"><label>TICKS</label><b id="tickCount">0</b></div>
+</div>
 <canvas id="chart"></canvas>
-<div style="display:flex;justify-content:space-between;margin-top:12px">
+<div class="controls">
 <button class="buy" onclick="executeTrade('buy')">BUY / RISE</button>
 <button class="sell" onclick="executeTrade('sell')">SELL / FALL</button>
 </div>
 </div>
 
 <script>
-let currentSymbol='R_100';
-let balance=10000;
-let chartPoints=[];
+let currentSymbol='R_100', balance=10000, chartPoints=[], tickCount=0, high=-Infinity, low=Infinity, startPrice=null;
 let ws;
-const priceEl=document.getElementById('price');
-const statusEl=document.getElementById('status');
-const marketSelect=document.getElementById('marketSelect');
-const canvas=document.getElementById('chart');
-const ctx=canvas.getContext('2d');
+const priceEl=document.getElementById('price'), statusEl=document.getElementById('status'), marketSelect=document.getElementById('marketSelect');
+const highEl=document.getElementById('high'), lowEl=document.getElementById('low'), volEl=document.getElementById('vol'), tickCountEl=document.getElementById('tickCount'), changeBadge=document.getElementById('changeBadge');
+const canvas=document.getElementById('chart'), ctx=canvas.getContext('2d');
 
 function connect(){
  ws=new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
- ws.onopen=()=>{
-  statusEl.textContent='● LIVE';statusEl.style.color='#22c55e';
-  subscribeToMarket(currentSymbol);
+ ws.onopen=()=>{statusEl.textContent='● LIVE';statusEl.style.color='#22c55e';subscribeToMarket(currentSymbol);};
+ ws.onmessage=(e)=>{
+  const d=JSON.parse(e.data);
+  if(d.error){statusEl.textContent='● '+d.error.message; statusEl.style.color='#ef4444'; return;}
+  if(d.tick){
+   const q=Number(d.tick.quote);
+   if(!q) return;
+   if(startPrice===null) startPrice=q;
+   priceEl.textContent=q.toFixed(2);
+   tickCount++; tickCountEl.textContent=tickCount;
+   high=Math.max(high,q); low=Math.min(low,q);
+   highEl.textContent=high.toFixed(2); lowEl.textContent=low.toFixed(2);
+   const change=((q-startPrice)/startPrice*100);
+   changeBadge.textContent=(change>=0?'+':'')+change.toFixed(2)+'%';
+   changeBadge.style.color=change>=0?'#22c55e':'#ef4444';
+   changeBadge.style.background=change>=0?'#22c55e1a':'#ef44441a';
+   chartPoints.push(q); if(chartPoints.length>100) chartPoints.shift();
+   const vol=chartPoints.length>1?Math.max(...chartPoints)-Math.min(...chartPoints):0;
+   volEl.textContent=vol.toFixed(2);
+   draw();
+  }
  };
- ws.onmessage=(msg)=>{
-  const d=JSON.parse(msg.data);
-  if(d.tick){priceEl.textContent=d.tick.quote.toFixed(2);chartPoints.push(d.tick.quote);if(chartPoints.length>100)chartPoints.shift();draw();}
- };
- ws.onclose=()=>{statusEl.textContent='● Reconnecting...';setTimeout(connect,2000);};
+ ws.onclose=()=>{statusEl.textContent='● Reconnecting...';statusEl.style.color='#fbbf24'; setTimeout(connect,2000);};
+ ws.onerror=()=>{statusEl.textContent='● Error';};
 }
 function subscribeToMarket(symbol){
  currentSymbol=symbol;
  document.getElementById('marketName').innerText=symbol+' INDEX';
- chartPoints=[];
- if(!ws || ws.readyState!==1){console.warn('[WS] Could not subscribe - socket not ready');return;}
+ chartPoints=[]; tickCount=0; high=-Infinity; low=Infinity; startPrice=null;
+ tickCountEl.textContent='0'; highEl.textContent='—'; lowEl.textContent='—'; volEl.textContent='—'; priceEl.textContent='...';
+ draw();
+ if(!ws || ws.readyState!==1){console.warn('[WS] not ready'); return;}
  ws.send(JSON.stringify({forget_all:'ticks'}));
- ws.send(JSON.stringify({ticks:symbol,subscribe:1}));
- console.log('[WS] Subscribed to '+symbol);
+ setTimeout(()=>{ws.send(JSON.stringify({ticks:symbol,subscribe:1})); console.log('[WS] Subscribed to '+symbol);},350);
 }
 function draw(){
- const w=canvas.width=canvas.clientWidth*2;const h=canvas.height=260*2;
- ctx.clearRect(0,0,w,h);if(chartPoints.length<2)return;
- const min=Math.min(...chartPoints),max=Math.max(...chartPoints);const range=max-min||1;
- ctx.beginPath();ctx.strokeStyle='#ff6a00';ctx.lineWidth=3;
- chartPoints.forEach((p,i)=>{const x=(i/(chartPoints.length-1))*w;const y=h-((p-min)/range)*(h-40)-20;i==0?ctx.moveTo(x,y):ctx.lineTo(x,y);});ctx.stroke();
+ const dpr=window.devicePixelRatio||1;
+ const w=canvas.clientWidth*dpr, h=280*dpr;
+ if(canvas.width!==w) canvas.width=w; if(canvas.height!==h) canvas.height=h;
+ ctx.clearRect(0,0,w,h);
+ if(chartPoints.length<2) return;
+ const min=Math.min(...chartPoints), max=Math.max(...chartPoints), range=(max-min)||1;
+ ctx.beginPath(); ctx.lineWidth=2.5*dpr; ctx.strokeStyle='#ff6a00'; ctx.lineJoin='round'; ctx.lineCap='round';
+ chartPoints.forEach((p,i)=>{const x=(i/(chartPoints.length-1))*w; const y=h-((p-min)/range)*(h-40*dpr)-20*dpr; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}); ctx.stroke();
+ // glow
+ ctx.globalAlpha=0.15; ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fillStyle='#ff6a00'; ctx.fill(); ctx.globalAlpha=1;
 }
 function updateBalanceDisplay(){document.getElementById('bal').innerText=balance.toFixed(2);}
 function executeTrade(type){
  let stake=parseFloat(document.getElementById('stakeInput').value);
- if(isNaN(stake)||stake<0.5){alert('Min 0.50');return;}
- if(stake>balance){alert('No balance');return;}
- const win=Math.random()>0.5;const payout=win?stake*0.95:-stake;balance+=payout;updateBalanceDisplay();
- const txt=(win?'WON +$'+(stake*0.95).toFixed(2):'LOST -$'+stake.toFixed(2));
- const toast=document.createElement('div');toast.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:'+(win?'#22c55e':'#ef4444')+';color:#fff;padding:12px 28px;border-radius:60px;z-index:9999';toast.textContent=type.toUpperCase()+' '+txt;document.body.appendChild(toast);setTimeout(()=>toast.remove(),3000);
+ if(isNaN(stake)||stake<0.5){alert('Minimum stake 0.50 USD'); return;}
+ if(stake>balance){alert('Insufficient balance!'); return;}
+ const win=Math.random()>0.5; const payout=win?stake*0.95:-stake; balance+=payout; updateBalanceDisplay();
+ const label=type==='buy'?'Rise':'Fall';
+ const text=win?`✅ ${label} WON +$${(stake*0.95).toFixed(2)}`:`❌ ${label} LOST -$${stake.toFixed(2)}`;
+ const toast=document.createElement('div');
+ toast.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${win?'#22c55e':'#ef4444'};color:${win?'#052e16':'#fff'};padding:12px 24px;border-radius:60px;font-weight:800;z-index:9999;box-shadow:0 12px 30px rgba(0,0,0,.4)`;
+ toast.textContent=text; document.body.appendChild(toast); setTimeout(()=>toast.remove(),2800);
 }
-marketSelect.addEventListener('change',function(){const s=this.value;if(s===currentSymbol)return;subscribeToMarket(s);});
+marketSelect.addEventListener('change',function(){if(this.value===currentSymbol) return; subscribeToMarket(this.value);});
+window.addEventListener('resize',draw);
 connect();
 </script>
 </body>
-</html>
+ </html>
