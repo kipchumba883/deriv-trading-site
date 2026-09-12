@@ -2,149 +2,98 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Deriv Live Terminal</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Deriv Live - Auto Symbols</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#0f172a;color:#e2e8f0;font-family:Inter,system-ui,sans-serif;padding:12px}
-.header,.card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:14px 16px;margin-bottom:12px}
-.header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.logo{font-weight:900;letter-spacing:.5px} .logo span{color:#ff6a00}
-select{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:12px;padding:8px 12px;font-weight:600}
-#status{font-size:13px;font-weight:700}
-#marketName{color:#94a3b8;font-size:13px;font-weight:700;letter-spacing:.6px}
-#priceRow{display:flex;align-items:baseline;gap:10px;margin:6px 0}
-#price{font-size:42px;font-weight:900;letter-spacing:-1px}
-#changeBadge{background:#22c55e1a;color:#22c55e;border:1px solid #22c55e33;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:800}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin:12px 0}
-.stat{background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:10px}
-.stat label{display:block;color:#64748b;font-size:10px;font-weight:800;margin-bottom:4px}
-.stat b{font-size:13px}
-canvas{width:100%;height:280px;background:#0b1220;border:1px solid #1e293b;border-radius:14px;display:block}
-.controls{display:flex;gap:10px;margin-top:14px}
-.controls button{flex:1;padding:14px;border-radius:14px;border:0;font-weight:900;font-size:15px;cursor:pointer}
-.buy{background:#22c55e;color:#052e16} .sell{background:#ef4444;color:#fff}
-.balanceRow{display:flex;justify-content:space-between;font-size:13px;color:#94a3b8;margin-bottom:8px}
-.balanceRow input{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:10px;padding:6px 10px;width:90px;font-weight:700}
+*{box-sizing:border-box}body{margin:0;background:#0f172a;color:#e2e8f0;font-family:system-ui;padding:12px}
+.header,.card{background:#1e293b;border:1px solid #334155;border-radius:20px;padding:14px;margin-bottom:12px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.logo{font-weight:900}.logo span{color:#ff6a00}
+select{background:#0f172a;color:#fff;border:1px solid #334155;border-radius:12px;padding:8px 12px;font-weight:700;min-width:140px}
+#status{font-size:12px;font-weight:800}
+#price{font-size:42px;font-weight:900}
+canvas{width:100%;height:280px;background:#0b1220;border-radius:14px;display:block;margin-top:10px}
+.buy{background:#22c55e;color:#052e16;width:49%;padding:14px;border:0;border-radius:14px;font-weight:900}
+.sell{background:#ef4444;color:#fff;width:49%;padding:14px;border:0;border-radius:14px;font-weight:900}
+.stat{display:inline-block;width:23%;background:#0f172a;border-radius:10px;padding:8px;margin-top:10px;font-size:12px;text-align:center}
 </style>
 </head>
 <body>
-
 <div class="header">
 <div class="logo">DERIV <span>LIVE</span></div>
-<select id="marketSelect">
-<option value="R_100">R_100</option>
-<option value="R_75">R_75</option>
-<option value="R_50">R_50</option>
-<option value="R_25">R_25</option>
-<option value="R_10">R_10</option>
-<option value="1HZ100V">Volatility 100</option>
-<option value="1HZ75V">Volatility 75</option>
-<option value="1HZ50V">Volatility 50</option>
-<option value="1HZ25V">Volatility 25</option>
-<option value="1HZ10V">Volatility 10</option>
-<option value="BOOM1000">Boom 1000</option>
-<option value="CRASH1000">Crash 1000</option>
-<option value="BOOM500">Boom 500</option>
-<option value="CRASH500">Crash 500</option>
-</select>
+<select id="marketSelect"><option>Loading markets...</option></select>
 <div id="status" style="color:#fbbf24">● Connecting...</div>
 </div>
-
 <div class="card">
-<div id="marketName">R_100 INDEX</div>
-<div id="priceRow">
+<div id="marketName">— INDEX</div>
 <div id="price">—</div>
-<div id="changeBadge">+0.00%</div>
-</div>
-<div class="balanceRow">
-<span>Balance: $<b id="bal" style="color:#fff">10000.00</b></span>
-<span>Stake: <input id="stakeInput" type="number" value="10.00" step="0.5"></span>
-</div>
-<div class="stats">
-<div class="stat"><label>24H HIGH</label><b id="high">—</b></div>
-<div class="stat"><label>24H LOW</label><b id="low">—</b></div>
-<div class="stat"><label>VOLATILITY</label><b id="vol">—</b></div>
-<div class="stat"><label>TICKS</label><b id="tickCount">0</b></div>
-</div>
+<div>Balance: $<span id="bal">10000.00</span> | Stake: <input id="stake" value="10" style="width:70px;background:#0f172a;color:#fff;border:1px solid #334155;border-radius:8px;padding:4px"></div>
+<div id="stats"></div>
 <canvas id="chart"></canvas>
-<div class="controls">
-<button class="buy" onclick="executeTrade('buy')">BUY / RISE</button>
-<button class="sell" onclick="executeTrade('sell')">SELL / FALL</button>
+<div style="display:flex;justify-content:space-between;margin-top:12px">
+<button class="buy" onclick="trade('buy')">BUY / RISE</button>
+<button class="sell" onclick="trade('sell')">SELL / FALL</button>
 </div>
 </div>
-
 <script>
-let currentSymbol='R_100', balance=10000, chartPoints=[], tickCount=0, high=-Infinity, low=Infinity, startPrice=null;
-let ws;
-const priceEl=document.getElementById('price'), statusEl=document.getElementById('status'), marketSelect=document.getElementById('marketSelect');
-const highEl=document.getElementById('high'), lowEl=document.getElementById('low'), volEl=document.getElementById('vol'), tickCountEl=document.getElementById('tickCount'), changeBadge=document.getElementById('changeBadge');
-const canvas=document.getElementById('chart'), ctx=canvas.getContext('2d');
-
+let ws, currentSymbol='R_100', chartPoints=[], balance=10000, high=-Infinity, low=Infinity, ticks=0;
+const priceEl=document.getElementById('price'), statusEl=document.getElementById('status'), sel=document.getElementById('marketSelect'), chart=document.getElementById('chart'), ctx=chart.getContext('2d');
 function connect(){
  ws=new WebSocket('wss://ws.derivws.com/websockets/v3?app_id=1089');
- ws.onopen=()=>{statusEl.textContent='● LIVE';statusEl.style.color='#22c55e';subscribeToMarket(currentSymbol);};
+ ws.onopen=()=>{
+  statusEl.textContent='● Loading markets...';
+  ws.send(JSON.stringify({active_symbols:'brief',product_type:'basic'}));
+ };
  ws.onmessage=(e)=>{
   const d=JSON.parse(e.data);
   if(d.error){statusEl.textContent='● '+d.error.message; statusEl.style.color='#ef4444'; return;}
+  if(d.active_symbols){
+   // Keep only synthetic indices
+   const allowed=['R_10','R_25','R_50','R_75','R_100','1HZ10V','1HZ25V','1HZ50V','1HZ75V','1HZ100V','BOOM1000','CRASH1000','BOOM500','CRASH500','BOOM300','CRASH300'];
+   let symbols=d.active_symbols.filter(s=>allowed.includes(s.symbol)).map(s=>s.symbol);
+   if(symbols.length===0) symbols=d.active_symbols.filter(s=>s.market==='synthetic_indices').slice(0,15).map(s=>s.symbol);
+   sel.innerHTML='';
+   symbols.forEach(sym=>{
+    const o=document.createElement('option'); o.value=sym; o.textContent=sym.replace('1HZ','Volatility ').replace('V',''); sel.appendChild(o);
+   });
+   currentSymbol=symbols.includes('R_100')? 'R_100' : symbols[0];
+   sel.value=currentSymbol;
+   statusEl.textContent='● LIVE'; statusEl.style.color='#22c55e';
+   subscribe(currentSymbol);
+   sel.onchange=()=>subscribe(sel.value);
+   return;
+  }
   if(d.tick){
    const q=Number(d.tick.quote);
-   if(!q) return;
-   if(startPrice===null) startPrice=q;
    priceEl.textContent=q.toFixed(2);
-   tickCount++; tickCountEl.textContent=tickCount;
-   high=Math.max(high,q); low=Math.min(low,q);
-   highEl.textContent=high.toFixed(2); lowEl.textContent=low.toFixed(2);
-   const change=((q-startPrice)/startPrice*100);
-   changeBadge.textContent=(change>=0?'+':'')+change.toFixed(2)+'%';
-   changeBadge.style.color=change>=0?'#22c55e':'#ef4444';
-   changeBadge.style.background=change>=0?'#22c55e1a':'#ef44441a';
-   chartPoints.push(q); if(chartPoints.length>100) chartPoints.shift();
-   const vol=chartPoints.length>1?Math.max(...chartPoints)-Math.min(...chartPoints):0;
-   volEl.textContent=vol.toFixed(2);
-   draw();
+   document.getElementById('marketName').textContent=d.tick.symbol+' INDEX';
+   ticks++; high=Math.max(high,q); low=Math.min(low,q);
+   document.getElementById('stats').innerHTML=`<div class="stat">HIGH<br><b>${high.toFixed(2)}</b></div><div class="stat">LOW<br><b>${low.toFixed(2)}</b></div><div class="stat">TICKS<br><b>${ticks}</b></div><div class="stat">VOL<br><b>${(high-low).toFixed(2)}</b></div>`;
+   chartPoints.push(q); if(chartPoints.length>100) chartPoints.shift(); draw();
   }
  };
- ws.onclose=()=>{statusEl.textContent='● Reconnecting...';statusEl.style.color='#fbbf24'; setTimeout(connect,2000);};
- ws.onerror=()=>{statusEl.textContent='● Error';};
+ ws.onclose=()=>{statusEl.textContent='● Reconnecting...'; setTimeout(connect,2000);};
 }
-function subscribeToMarket(symbol){
- currentSymbol=symbol;
- document.getElementById('marketName').innerText=symbol+' INDEX';
- chartPoints=[]; tickCount=0; high=-Infinity; low=Infinity; startPrice=null;
- tickCountEl.textContent='0'; highEl.textContent='—'; lowEl.textContent='—'; volEl.textContent='—'; priceEl.textContent='...';
- draw();
- if(!ws || ws.readyState!==1){console.warn('[WS] not ready'); return;}
+function subscribe(sym){
+ currentSymbol=sym; chartPoints=[]; ticks=0; high=-Infinity; low=Infinity; priceEl.textContent='...';
+ if(!ws || ws.readyState!==1) return;
  ws.send(JSON.stringify({forget_all:'ticks'}));
- setTimeout(()=>{ws.send(JSON.stringify({ticks:symbol,subscribe:1})); console.log('[WS] Subscribed to '+symbol);},350);
+ setTimeout(()=>ws.send(JSON.stringify({ticks:sym,subscribe:1})),300);
 }
 function draw(){
- const dpr=window.devicePixelRatio||1;
- const w=canvas.clientWidth*dpr, h=280*dpr;
- if(canvas.width!==w) canvas.width=w; if(canvas.height!==h) canvas.height=h;
- ctx.clearRect(0,0,w,h);
- if(chartPoints.length<2) return;
- const min=Math.min(...chartPoints), max=Math.max(...chartPoints), range=(max-min)||1;
- ctx.beginPath(); ctx.lineWidth=2.5*dpr; ctx.strokeStyle='#ff6a00'; ctx.lineJoin='round'; ctx.lineCap='round';
- chartPoints.forEach((p,i)=>{const x=(i/(chartPoints.length-1))*w; const y=h-((p-min)/range)*(h-40*dpr)-20*dpr; i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}); ctx.stroke();
- // glow
- ctx.globalAlpha=0.15; ctx.lineTo(w,h); ctx.lineTo(0,h); ctx.closePath(); ctx.fillStyle='#ff6a00'; ctx.fill(); ctx.globalAlpha=1;
+ const dpr=2, w=chart.clientWidth*dpr, h=280*dpr; chart.width=w; chart.height=h;
+ ctx.clearRect(0,0,w,h); if(chartPoints.length<2) return;
+ const min=Math.min(...chartPoints), max=Math.max(...chartPoints), range=max-min||1;
+ ctx.beginPath(); ctx.strokeStyle='#ff6a00'; ctx.lineWidth=3; ctx.lineJoin='round';
+ chartPoints.forEach((p,i)=>{const x=i/(chartPoints.length-1)*w, y=h-(p-min)/range*(h-40)-20; i?ctx.lineTo(x,y):ctx.moveTo(x,y);}); ctx.stroke();
 }
-function updateBalanceDisplay(){document.getElementById('bal').innerText=balance.toFixed(2);}
-function executeTrade(type){
- let stake=parseFloat(document.getElementById('stakeInput').value);
- if(isNaN(stake)||stake<0.5){alert('Minimum stake 0.50 USD'); return;}
- if(stake>balance){alert('Insufficient balance!'); return;}
- const win=Math.random()>0.5; const payout=win?stake*0.95:-stake; balance+=payout; updateBalanceDisplay();
- const label=type==='buy'?'Rise':'Fall';
- const text=win?`✅ ${label} WON +$${(stake*0.95).toFixed(2)}`:`❌ ${label} LOST -$${stake.toFixed(2)}`;
- const toast=document.createElement('div');
- toast.style.cssText=`position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:${win?'#22c55e':'#ef4444'};color:${win?'#052e16':'#fff'};padding:12px 24px;border-radius:60px;font-weight:800;z-index:9999;box-shadow:0 12px 30px rgba(0,0,0,.4)`;
- toast.textContent=text; document.body.appendChild(toast); setTimeout(()=>toast.remove(),2800);
+function trade(type){
+ const stake=parseFloat(document.getElementById('stake').value)||10;
+ const win=Math.random()>0.5; balance+=win?stake*0.9:-stake;
+ document.getElementById('bal').textContent=balance.toFixed(2);
+ alert(type.toUpperCase()+' '+(win?'WON +$'+(stake*0.9).toFixed(2):'LOST -$'+stake));
 }
-marketSelect.addEventListener('change',function(){if(this.value===currentSymbol) return; subscribeToMarket(this.value);});
-window.addEventListener('resize',draw);
 connect();
 </script>
 </body>
- </html>
+</html>
